@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <script src="js/three.js"></script>
+    <script src="js/OrbitControls.js"></script>
+    <script src="js/jquery-1.7.2.js"></script>
+    <script src="js/Projector.js"></script>
+    <script src="js/Tween.js"></script>
+    <script src="js/threeQuery.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding:0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+</body>
+<script>
+    alert("请双击箭头！")
+    var scene,
+        camera,
+        orbit,
+        skybox,
+        textureCube,
+        camera_position= {
+            "-0": {img: "images/parliament/",arrow:[
+                {position:{px:0,py:0,pz:0,rx:0,ry:0,rz:0},point_to:{x: 29, y: 1.6, z: 1.6},leave_for: "-AA"},
+            ]},
+            "-AA": {img: "images/Bridge2/",arrow:[
+                {position:{px:0,py:0,pz:0,rx:0,ry:1.6,rz:0},point_to:{x: 2.10, y: 1.59, z: -28.96},leave_for: "-0"},
+            ]},
+        };
+    let forwad_mark={
+        triangle:[ -150, -52, 0, -1.55, 0.3, 0, 0],
+        triangle_shadow:[-149.4,-53.2, 0, -1.55, 0.3, 0, 0],
+        circleplan:[-156,-53, 0,-1.6, 0.3, 0, 0],
+        circleplan_shadow:[-155.4,-54.61, 0,-1.6, 0.3, 0, 0]
+    };
+    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 10000);
+    orbit = new THREE.OrbitControls(camera);
+    rander = new THREE.WebGLRenderer();
+    rander.setSize(window.innerWidth, window.innerHeight);
+    rander.shadowMapEnabled = true;
+    camera.position.x=29;
+    camera.position.y=1.7;
+    camera.position.z=1.7;
+    document.body.appendChild(rander.domElement);
+    document.addEventListener('dblclick', onDocumentMouseDown, false);
+    //初始化方法
+    function init(config) {
+        scene=new THREE.Scene();
+        mesh_arrow=[];
+        for(let i= 0;i<config.arrow.length;i++){
+            let arrow=found_identifying.call(forwad_mark,config.arrow[i]);
+            scene.add(arrow);
+            mesh_arrow.push(arrow);
+        }
+        //光线
+        directionalLight = new THREE.DirectionalLight(0xffffff,1);
+        directionalLight.position.set(0,100,0);
+        directionalLight.castShadow=true;
+        scene.add(directionalLight);
+        add_skyBox(config.img);
+        camera.scale.z=1;
+    }
+    //创建点击标识
+    function found_identifying(setting){
+        let group = new THREE.Group();
+        //箭头
+        let triangleShape1 = new THREE.Shape();
+        triangleShape1.moveTo(  0, -5 );
+        triangleShape1.lineTo(  -3, 0 );
+        triangleShape1.lineTo(  0, 5 );
+        triangleShape1.lineTo(  -10, 0 );
+        triangleShape1.lineTo(  0, -5 );
+        found_Shape( triangleShape1,"triangle"+setting.leave_for,{color:0xcccccc, side: THREE.DoubleSide},this.triangle,setting);
+        //箭头阴影
+        let triangleShape2 = new THREE.Shape();
+        triangleShape2.moveTo(  0, -5 );
+        triangleShape2.lineTo(  -3, 0 );
+        triangleShape2.lineTo(  0, 5 );
+        triangleShape2.lineTo(  -10, 0 );
+        triangleShape2.lineTo(  0, -5 );
+        found_Shape( triangleShape2,"triangle_shadow"+setting.leave_for,{color:0x29272E, side: THREE.DoubleSide},this.triangle_shadow,setting);
+        //圆盘
+        let smileyShape = new THREE.Shape();
+        smileyShape.absarc( 0, 0, 11, 0, Math.PI*2, false );
+        found_Shape( smileyShape,"circleplan"+setting.leave_for,{color:0x357ADE, side: THREE.DoubleSide},this.circleplan,setting);
+        //圆盘阴影
+        let smileyShape2 = new THREE.Shape();
+        smileyShape2.absarc( 0, 0, 11, 0, Math.PI*2, false );
+        found_Shape( smileyShape2,"circleplan_shadow"+setting.leave_for,{color:0x175385, side: THREE.DoubleSide},this.circleplan_shadow,setting);
+        //创建图形
+        function found_Shape(shape,name,cg,arr,data){
+            let geometry = new THREE.ShapeGeometry( shape );
+            let material = new THREE.MeshLambertMaterial( cg);
+            let mesh = new THREE.Mesh( geometry, material );
+            mesh.name=name;
+            mesh.position.x+=arr[0];
+            mesh.position.y+=arr[1];
+            mesh.position.z+=arr[2];
+            mesh.rotation.x+=arr[3];
+            mesh.rotation.y+=arr[4];
+            mesh.rotation.z+=arr[5];
+            mesh.castShadow=true;
+            mesh.zdata=data;
+            group.add(mesh);
+        }
+        group.position=new THREE.Vector3(setting.position.px,setting.position.py,setting.position.pz);
+        group.rotation.x=setting.position.rx;
+        group.rotation.y=setting.position.ry;
+        group.rotation.z=setting.position.rz;
+        return group;
+    }
+    //渲染方法
+    function renderFn() {
+        orbit.update();
+        rander.render(scene, camera);
+        requestAnimationFrame(renderFn);
+        TWEEN.update();
+    }
+    //点击射线方法
+    function onDocumentMouseDown(event) {
+        let choose;
+        let vector = new THREE.Vector3(( event.clientX / window.innerWidth ) * 2 - 1, -( event.clientY / window.innerHeight ) * 2 + 1, 0.5);
+        let geometry_list=[];
+        vector = vector.unproject(camera);
+        for(let i=0;i<mesh_arrow.length;i++){
+            for(let j=0;j<mesh_arrow[i].children.length;j++){
+                geometry_list.push(mesh_arrow[i].children[j]);
+            }
+        }
+        let raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
+        let intersects = raycaster.intersectObjects(geometry_list);
+        if (intersects.length == 0)return
+        choose=intersects[0].object.name.match(/[-]\w+/);
+        set_cameraPosition(intersects[0].object.zdata.point_to,()=>{
+            init(camera_position[choose]);
+        })
+    }
+    //调整相机视角
+    function set_cameraPosition(p,callback){
+        console.log("调整视角")
+        let position=new THREE.Vector3(p.x, p.y, p.z);
+        new TWEEN.Tween(camera.position).to(position, 500).repeat(0).start();
+        new TWEEN.Tween(camera.scale).to(new THREE.Vector3(1,1,2), 500).start().onComplete(callback);
+    }
+    // 创建天空盒
+    function add_skyBox(path){
+        var format = '.jpg';
+        var urls = [
+            path + 'posx' + format, path + 'negx' + format,
+            path + 'posy' + format, path + 'negy' + format,
+            path + 'posz' + format, path + 'negz' + format
+        ];
+        textureCube = THREE.ImageUtils.loadTextureCube(urls, new THREE.CubeReflectionMapping());
+        textureCube.format = THREE.RGBFormat;
+        var shader = THREE.ShaderLib["cube"];
+        shader.uniforms["tCube"].value = textureCube;
+
+        var material = new THREE.ShaderMaterial({
+
+            fragmentShader: shader.fragmentShader,
+            vertexShader: shader.vertexShader,
+            uniforms: shader.uniforms,
+            depthWrite: false,
+            side: THREE.DoubleSide
+
+        });
+        skybox = new THREE.Mesh(new THREE.BoxGeometry(10000, 10000, 10000,3,3,3), material);
+        scene.add(skybox);
+    }
+    window.onload = ()=>{
+        init(camera_position["-0"]);
+        renderFn();
+    };
+
+</script>
+</html>
