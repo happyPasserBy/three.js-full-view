@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <script src="js/three.js"></script>
     <script src="js/OrbitControls.js"></script>
-    <script src="js/jquery-1.7.2.js"></script>
     <script src="js/Projector.js"></script>
     <script src="js/Tween.js"></script>
     <script src="js/threeQuery.js"></script>
@@ -19,8 +18,7 @@
 <body>
 </body>
 <script>
-    alert("请双击箭头！")
-    var scene,
+    let scene,
         camera,
         orbit,
         skybox,
@@ -143,7 +141,6 @@
     }
     //调整相机视角
     function set_cameraPosition(p,callback){
-        console.log("调整视角")
         let position=new THREE.Vector3(p.x, p.y, p.z);
         new TWEEN.Tween(camera.position).to(position, 500).repeat(0).start();
         new TWEEN.Tween(camera.scale).to(new THREE.Vector3(1,1,2), 500).start().onComplete(callback);
@@ -177,6 +174,6 @@
         init(camera_position["-0"]);
         renderFn();
     };
-
+    alert("请双击箭头！")
 </script>
 </html>
