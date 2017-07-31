@@ -62,7 +62,6 @@
         directionalLight.castShadow=true;
         scene.add(directionalLight);
         add_skyBox(config.img);
-        camera.scale.z=1;
     }
     //创建点击标识
     function found_identifying(setting){
@@ -169,6 +168,7 @@
         });
         skybox = new THREE.Mesh(new THREE.BoxGeometry(10000, 10000, 10000,3,3,3), material);
         scene.add(skybox);
+        camera.scale.z=1;
     }
     window.onload = ()=>{
         init(camera_position["-0"]);
