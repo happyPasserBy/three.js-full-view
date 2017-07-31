@@ -146,18 +146,18 @@
     }
     // 创建天空盒
     function add_skyBox(path){
-        var format = '.jpg';
-        var urls = [
+        let format = '.jpg';
+        let urls = [
             path + 'posx' + format, path + 'negx' + format,
             path + 'posy' + format, path + 'negy' + format,
             path + 'posz' + format, path + 'negz' + format
         ];
         textureCube = THREE.ImageUtils.loadTextureCube(urls, new THREE.CubeReflectionMapping());
         textureCube.format = THREE.RGBFormat;
-        var shader = THREE.ShaderLib["cube"];
+        let shader = THREE.ShaderLib["cube"];
         shader.uniforms["tCube"].value = textureCube;
 
-        var material = new THREE.ShaderMaterial({
+        let material = new THREE.ShaderMaterial({
 
             fragmentShader: shader.fragmentShader,
             vertexShader: shader.vertexShader,
